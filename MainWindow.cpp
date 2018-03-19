@@ -111,12 +111,17 @@ MainWindow::MainWindow() : QWidget()
     qTable->move(1,350);
     qTable->resize(800, 250);
 
+    qResult = new QLabel("Aucune maladie", this);
+    qResult->setFont(QFont("Arial", 12, NULL, true));
+    qResult->setGeometry(190,280,150,40);
 
     connect(qPredire, SIGNAL(clicked()), this, SLOT(setPrediction()));
 }
 
 void MainWindow::setPrediction() {
     //predire la maladie avec la formule
+
+
 
 
 }

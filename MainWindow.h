@@ -28,7 +28,7 @@ private :
     QLabel *qLblFievre;
 
     QLabel *qLblAttribut;
-
+    QLabel *qResult;
     QPushButton *qPredire;
 
     QLineEdit *qLinePrenom;
