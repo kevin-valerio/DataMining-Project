@@ -6,3 +6,5 @@ SOURCES += \
 HEADERS += \
     MainWindow.h \
     charger_csv.h
+
+QT += widgets

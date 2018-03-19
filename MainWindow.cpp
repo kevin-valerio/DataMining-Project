@@ -41,8 +41,7 @@ MainWindow::MainWindow() : QWidget()
     }
     tab.removeDuplicates();
     qComboFievre->addItems(tab);
-    clearTab(tab);
-
+    tab.clear();
 
     ///////////// POUR LA DOULEUR
 
@@ -54,7 +53,7 @@ MainWindow::MainWindow() : QWidget()
     }
     tab.removeDuplicates();
     qComboDouleur->addItems(tab);
-    clearTab(tab);
+    tab.clear();
 
 
     ///////////// POUR LA TOUX
@@ -67,8 +66,7 @@ MainWindow::MainWindow() : QWidget()
     }
     tab.removeDuplicates();
     qComboToux->addItems(tab);
-    clearTab(tab);
-
+     tab.clear();
 
     qLblToux = new QLabel("Toux", this);
     qLblToux->setFont(QFont("Arial", 12, NULL, true));
@@ -98,8 +96,12 @@ MainWindow::MainWindow() : QWidget()
     for(unsigned i(0); i < m_vet.size(); ++i)
         horinzontalLbl.append(QString::fromStdString(m_vet[i]));
 
-    for(unsigned i(0); i < m_mat.size(); ++i){
+    for(unsigned i(0); i < m_mat.size(); ++i)
         verticalLbl.append("Patient " + QString::number(i));
+
+    for(unsigned i(0); i < m_vet.size() ; ++i){
+        for(unsigned a(0); a < m_mat.size() ; ++a)
+             qTable->setItem(a,i, new QTableWidgetItem(QString::fromStdString(m_mat[a][i])));
     }
 
 
@@ -113,13 +115,9 @@ MainWindow::MainWindow() : QWidget()
     connect(qPredire, SIGNAL(clicked()), this, SLOT(setPrediction()));
 }
 
-void MainWindow::clearTab(QStringList &tab){
-    for(unsigned i(0); i < tab.size(); ++i){
-        tab.removeAt(i);
-    }
-}
-
 void MainWindow::setPrediction() {
     //predire la maladie avec la formule
+
+
 }
 
