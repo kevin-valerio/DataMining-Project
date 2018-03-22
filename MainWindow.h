@@ -18,6 +18,13 @@ public :
 
 private :
     void clearTab(QStringList &tab);
+    float getFrequence(string maladie);
+    float getFrequence(string maladie, string symptome, int col);
+    float getConfiance(string maladie, string symptome, int colonne);
+    vector<string> getMaladies();
+    string getFinalMaladie();
+
+
 
     QLabel *qPrenom;
     QLabel *qNom;

@@ -1,6 +1,10 @@
 #include "MainWindow.h"
+#include <algorithm>
+#include <map>
 #include <QHBoxLayout>
+#include <QMessageBox>
 #include <QString>
+#include <vector>
 #include "charger_csv.h"
 
 using namespace std;
@@ -66,7 +70,7 @@ MainWindow::MainWindow() : QWidget()
     }
     tab.removeDuplicates();
     qComboToux->addItems(tab);
-     tab.clear();
+    tab.clear();
 
     qLblToux = new QLabel("Toux", this);
     qLblToux->setFont(QFont("Arial", 12, NULL, true));
@@ -101,7 +105,7 @@ MainWindow::MainWindow() : QWidget()
 
     for(unsigned i(0); i < m_vet.size() ; ++i){
         for(unsigned a(0); a < m_mat.size() ; ++a)
-             qTable->setItem(a,i, new QTableWidgetItem(QString::fromStdString(m_mat[a][i])));
+            qTable->setItem(a,i, new QTableWidgetItem(QString::fromStdString(m_mat[a][i])));
     }
 
 
@@ -113,16 +117,117 @@ MainWindow::MainWindow() : QWidget()
 
     qResult = new QLabel("Aucune maladie", this);
     qResult->setFont(QFont("Arial", 12, NULL, true));
-    qResult->setGeometry(190,280,150,40);
+    qResult->setGeometry(190,280,420,40);
+
+    vector<string> c = getMaladies();
+
 
     connect(qPredire, SIGNAL(clicked()), this, SLOT(setPrediction()));
 }
 
-void MainWindow::setPrediction() {
-    //predire la maladie avec la formule
+
+vector<string> MainWindow::getMaladies(){
+    vector<string> maladies;
+    for(unsigned i(1); i < m_mat.size() ; ++i)
+        maladies.push_back(m_mat[i][3]);
+
+    sort(maladies.begin(), maladies.end());
+    maladies.erase(unique(maladies.begin(), maladies.end()), maladies.end());
+
+    return maladies;
+}
 
 
 
+float MainWindow::getFrequence(string maladie){
+    float frequence;
+    for(unsigned i(0); i < m_mat.size(); ++i)
+        if(m_mat[i][3] == maladie)
+            ++frequence;
+
+    return (frequence / m_mat.size());
+}
+
+float MainWindow::getFrequence(string maladie, string symptome, int col){
+    float frequence;
+    for(unsigned i(0); i < m_mat.size(); ++i)
+        if(m_mat[i][col] == symptome && m_mat[i][3] == maladie)
+            ++frequence;
+    return (frequence / m_mat.size());
+}
+
+float MainWindow::getConfiance(string maladie, string symptome, int colonne){
+    return getFrequence(maladie, symptome, colonne) / getFrequence(maladie);
+}
+
+string MainWindow::getFinalMaladie() {
+
+
+    string txtFievre =  qComboFievre->currentText().toStdString();
+    string txtDouleur =  qComboDouleur->currentText().toStdString();
+    string txtToux =  qComboToux->currentText().toStdString();
+
+    map<string, float> maladiesEtScore;
+    map<string, float>::iterator it;
+
+    float score = 0;
+    int nombreScoresEgaux = 0;
+    string scoreFinal;
+    int a = 0;
+
+    for(unsigned i(0); i < getMaladies().size(); ++i){
+        string maladieParcourue = getMaladies()[i];
+        maladiesEtScore.insert(make_pair(maladieParcourue, 1));
+    }
+
+    if(txtToux == "NULL" && txtDouleur == "NULL" && txtFievre == "NULL"){
+
+         return "Tout est NULL. Cela ne devrait pas etre le cas...";
+    }
+
+    else{
+
+        if(txtFievre != "NULL"){
+            map<string, float>::iterator it = maladiesEtScore.begin();
+            for (;it != maladiesEtScore.end(); ++it)
+                it->second *= getConfiance(it->first, txtFievre, 0);
+        }
+
+        if(txtDouleur != "NULL"){
+            map<string, float>::iterator it = maladiesEtScore.begin();
+            for (;it != maladiesEtScore.end(); ++it)
+                it->second *= getConfiance(it->first, txtDouleur, 1);
+        }
+
+        if(txtToux != "NULL"){
+            map<string, float>::iterator it = maladiesEtScore.begin();
+            for (;it != maladiesEtScore.end(); ++it)
+                it->second *= getConfiance(it->first, txtToux, 2);
+        }
+
+        for (it = maladiesEtScore.begin(); it != maladiesEtScore.end(); ++it ){
+            if(a==0) score = it->second;
+            if(it->second > score) score = it->second;
+            ++a;
+        }
+
+    }
+
+    for (it = maladiesEtScore.begin(); it != maladiesEtScore.end(); ++it){
+        if (it->second == score){
+            scoreFinal = it->first;
+            ++nombreScoresEgaux;
+        }
+    }
+
+    if((int) score == 0) return "Le score est de 0. Impossible de determiner la maladie";
+    if(nombreScoresEgaux > 1) return "Trop de scores egaux !";
+    return scoreFinal;
 
 }
 
+void MainWindow::setPrediction(){
+
+    qResult->setText(QString::fromStdString(getFinalMaladie()));
+
+}
